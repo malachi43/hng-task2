@@ -15,6 +15,10 @@ app.use(express.urlencoded({ extended: false }));
 app.get("/", validateUser, (req, res) => {
     res.status(200);
 })
+
+app.get("/error",  (req, res) => {
+    throw new Error(`testing error package.`)
+})
 app.use(errorHandler)
 
 app.listen(PORT, async () => {

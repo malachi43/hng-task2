@@ -7,6 +7,11 @@ const client = new Client({
     database: 'hngtask2db'
 })
 
+client.on("error", err => {
+    if (err) process.exit(-1);
+})
+
+
 async function connectToDatabase() {
     try {
         console.log(`CONNECTING TO DATABASE...`)
