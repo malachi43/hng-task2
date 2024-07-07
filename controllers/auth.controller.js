@@ -105,5 +105,4 @@ class Auth {
     }
 }
 
-const auth = new Auth()
-auth.login({ firstName: 'Malachi', lastName: "Uko", password: "123456", email: "ukomalachi@gmail.com", phone: "09025044722" }, {})
+module.exports = new Auth();
