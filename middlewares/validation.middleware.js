@@ -11,11 +11,25 @@ const validateUser = async (req, res, next) => {
     })
 
     try {
-        await userSchema.validateAsync(validateUser)
+        await userSchema.validateAsync(req.body)
         next()
     } catch (error) {
         throw error
     }
 }
 
-module.exports = { validateUser }
+const validateOrganisation = async (req, res, next) => {
+    const orgSchema = joi.object({
+        name: joi.string().required(),
+        description: joi.string().optional()
+    })
+
+    try {
+        await orgSchema.validateAsync(req.body)
+        next()
+    } catch (error) {
+        throw error
+    }
+}
+
+module.exports = { validateUser, validateOrg: validateOrganisation }
