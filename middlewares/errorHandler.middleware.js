@@ -15,14 +15,14 @@ const errorHandler = (err, req, res, next) => {
     const BadRequestErrorRes = {
         status: "Bad request",
         message: err.message,
-        "statusCode": err.name === "UnauthenticatedError" ? 401 : 400
+        statusCode: err.name === "UnauthenticatedError" ? 401 : 400
     }
 
     if (err.name === "BadRequestError" || err.name === "UnauthenticatedError") {
         return res.status(400).json(BadRequestErrorRes)
     }
 
-    res.status(validationObjRes.error_code).json({
+    res.status(400).json({
         "status": err.name,
         "message": err.message,
         "statusCode": err.statusCode ?? 500

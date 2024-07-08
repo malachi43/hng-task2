@@ -1,5 +1,6 @@
 const getClient = require("../database");
 const { BadRequestError } = require("../errors")
+const { v4: uuidv4 } = require("uuid");
 
 class Organisation {
     async getAllOrganisations(req, res) {
@@ -59,6 +60,39 @@ class Organisation {
         res.status(200).json(dataObj);
     }
 
+    async createOrganisation(req, res) {
+        // const { name, description } = req.body;
+        let name = "";
+        let description = `Getting started with third task`
+        if (!name) throw new BadRequestError(`provide name field.`)
+        const client = await getClient();
+        const orgQuery = {}
+        const createOrganisation = `INSERT INTO organisations(org_id, name, description) VALUES ($1,$2,$3) RETURNING *;`
+        const orgValues = [uuidv4(), name, description]
+        orgQuery.text = createOrganisation;
+        orgQuery.values = orgValues;
+
+        const { rows } = await client.query(orgQuery)
+        const { org_id, name: orgName, description: orgDescription } = rows[0]
+
+        const dataObj = {
+            status: "success",
+            message: "Organisation created successfully",
+            data: {
+                orgId: org_id,
+                name: orgName,
+            }
+        }
+
+        if(orgDescription){
+            dataObj.data.description = orgDescription
+        }
+
+        console.log(dataObj)
+        // res.status(200).json(dataObj)
+    }
+
 }
 
+new Organisation().createOrganisation();
 module.exports = new Organisation();
