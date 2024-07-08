@@ -8,7 +8,11 @@ async function connectToDatabase() {
     try {
         console.log(`CONNECTING TO DATABASE...`)
         const client = new Client({
-            connectionString: process.env.PSQL_CONN_STRING
+            host: "dpg-cq6700rv2p9s73cgvbj0-a",
+            user: "hngtask2user",
+            password: "RdGhrp39iHegj6150uqFx7zyYkWVBCXz",
+            port: 5432,
+            database: "hngtask2db"
         })
         await client.connect();
         client.on("error", err => {
