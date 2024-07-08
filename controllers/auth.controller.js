@@ -4,11 +4,13 @@ const { hash, compare } = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const { createToken } = require("../utils")
 
+const testObj = { firstName: 'user5', lastName: "user5LastName", phone: "05072689834", password: "5432", email: "user5@example.com" }
+
 const { BadRequestError, UnauthenticatedError } = require("../errors");
 class Auth {
 
     async login(req, res) {
-        const { email, password } = req;
+        const { email, password } = req.body;
         if (!password || !email) {
             throw new UnauthenticatedError(`Authentication failed`)
         }
@@ -40,13 +42,14 @@ class Auth {
         if (phone) {
             dataObj.data.user.phone = phone
         }
-        // res.status(200).json(dataObj)
-        console.log(dataObj)
+        res.status(200).json(dataObj)
     }
     async register(req, res) {
         try {
             const client = await getClient();
-            const { firstName, lastName, email, password, phone } = req
+            // const { firstName, lastName, email, password, phone } = req
+            const { firstName, lastName, email, password, phone } = testObj
+
             const userQuery = {}
             const orgQuery = {}
 
@@ -55,28 +58,42 @@ class Auth {
 
             let createUser = ''
             const userValues = [uuidv4(), firstName, lastName, email, passwordHash]
-            const createOrganisation = `INSERT INTO organisations(org_id, name) VALUES ($1,$2)`
+            const createOrganisation = `INSERT INTO organisations(org_id, name, user_id,members) VALUES ($1,$2,$3,$4);`
+
             const orgValues = [uuidv4(), `${firstName}'s Organisation`]
+
+            //check if client added their phone_number
             if (phone) {
-                createUser = `INSERT INTO users (user_id,first_name,last_name,email,password,phone) VALUES ($1,$2,$3,$4,$5,$6)`
+                createUser = `INSERT INTO users (user_id,first_name,last_name,email,password,phone) VALUES ($1,$2,$3,$4,$5,$6);`
                 userValues.push(phone)
             } else {
-                createUser = `INSERT INTO users (user_id,first_name,last_name,email,password) VALUES ($1,$2,$3,$4,$5)`
+                createUser = `INSERT INTO users (user_id,first_name,last_name,email,password) VALUES ($1,$2,$3,$4,$5);`
             }
+
 
             userQuery.text = createUser;
             userQuery.values = userValues;
 
-            orgQuery.text = createOrganisation;
-            orgQuery.values = orgValues;
-
             await client.query(userQuery);
-            await client.query(orgQuery);
 
             const { rows } = await client.query(`SELECT * FROM users;`)
-            await client.query(`SELECT * FROM organisations;`)
 
             const { user_id, first_name, last_name, email: userEmail, phone: userContact } = rows[0]
+
+            //array to hold users in an organisation
+            orgValues.push(user_id);
+            let members = []
+            members.push(user_id)
+            //convert array items to string.
+            members = members.join(",")
+            orgValues.push(`{${members}}`)
+
+            orgQuery.values = orgValues;
+            orgQuery.text = createOrganisation;
+
+            console.log(`result: `, orgValues)
+
+            await client.query(orgQuery);
 
             const accessToken = await createToken({ payload: { userId: user_id } });
 
@@ -96,9 +113,9 @@ class Auth {
             if (userContact) {
                 dataObj.data.user.phone = userContact
             }
-            // res.status(201).json(dataObj);
-            console.log(dataObj)
+            res.status(201).json(dataObj);
         } catch (error) {
+            console.log(`Error, `, error.message)
             throw new BadRequestError(`Registration unsuccessful`)
         }
 
