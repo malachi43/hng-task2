@@ -29,6 +29,7 @@ class User {
             dataObj.data.phone = phone
         }
 
+
         res.status(200).json(dataObj)
 
     }
