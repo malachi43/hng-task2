@@ -2,7 +2,7 @@ const getClient = require("../database");
 const { BadRequestError } = require("../errors")
 
 class Organisation {
-    async getOrganisations(req, res) {
+    async getAllOrganisations(req, res) {
         const { user_id } = req.user
         const userQuery = {}
         const orgQuery = {}
@@ -39,8 +39,25 @@ class Organisation {
 
     }
 
+    async getOrganisation(req, res) {
+        const { id } = req.params
+        if (!id) throw new BadRequestError(`provide a valid id.`)
+        const client = await getClient();
+        const orgQuery = {}
+        const getOrganisation = `SELECT * FROM organisations WHERE org_id = $1;`
+        orgQuery.text = getOrganisation;
+        orgQuery.values = [id]
 
+        const { rows } = await client.query(orgQuery)
 
+        const dataObj = {
+            status: "success",
+            message: "request successful",
+            data: rows[0]
+        }
+
+        res.status(200).json(dataObj);
+    }
 
 }
 
