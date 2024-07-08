@@ -8,11 +8,7 @@ async function connectToDatabase() {
     try {
         console.log(`CONNECTING TO DATABASE...`)
         const client = new Client({
-            user: 'postgres',
-            password: 'postgres_malachi_12',
-            host: "localhost",
-            port: 5432,
-            database: 'hngtask2db'
+            connectionString: process.env.PSQL_CONN_STRING
         })
         await client.connect();
         client.on("error", err => {
