@@ -4,7 +4,7 @@ const { hash, compare } = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const { createToken } = require("../utils")
 
-const testObj = { firstName: 'user5', lastName: "user5LastName", phone: "05072689834", password: "5432", email: "user5@example.com" }
+
 
 const { BadRequestError, UnauthenticatedError } = require("../errors");
 class Auth {
@@ -15,6 +15,7 @@ class Auth {
             throw new UnauthenticatedError(`Authentication failed`)
         }
         const client = await getClient();
+        console.log(client)
         const userQuery = {}
         const findUser = `SELECT * FROM users WHERE email = $1;`;
         const userValues = [email]
@@ -47,8 +48,7 @@ class Auth {
     async register(req, res) {
         try {
             const client = await getClient();
-            // const { firstName, lastName, email, password, phone } = req
-            const { firstName, lastName, email, password, phone } = testObj
+            const { firstName, lastName, email, password, phone } = req.body
 
             const userQuery = {}
             const orgQuery = {}
@@ -91,8 +91,6 @@ class Auth {
             orgQuery.values = orgValues;
             orgQuery.text = createOrganisation;
 
-            console.log(`result: `, orgValues)
-
             await client.query(orgQuery);
 
             const accessToken = await createToken({ payload: { userId: user_id } });
@@ -115,7 +113,6 @@ class Auth {
             }
             res.status(201).json(dataObj);
         } catch (error) {
-            console.log(`Error, `, error.message)
             throw new BadRequestError(`Registration unsuccessful`)
         }
 

@@ -1,9 +1,18 @@
 const { ValidationError } = require("joi");
 
 const errorHandler = (err, req, res, next) => {
+    console.log(err.stack)
+    //err.details[0]?.path
+    let fieldName = err.details
+    if (fieldName) {
+        fieldName = fieldName[0]?.path;
+    }
     const validationObjRes = {
         error: [
-            { field: "", message: err.name }
+            {
+                field: fieldName ?? err.message,
+                message: err.name
+            }
         ],
         error_code: err instanceof ValidationError ? 422 : 500
     }

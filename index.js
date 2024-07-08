@@ -5,21 +5,34 @@ const app = express();
 const getClient = require("./database")
 const PORT = process.env.PORT || 3000;
 const errorHandler = require('./middlewares/errorHandler.middleware')
-const { validateUser } = require("./middlewares/validation.middleware")
+const { validateUser: validateUserPayload } = require("./middlewares/validation.middleware")
+const userController = require("./controllers/user.controller")
+const authController = require("./controllers/auth.controller")
+const organisationController = require("./controllers/organization.controller")
+const isAuth = require("./middlewares/isAuthenticated")
+const morgan = require("morgan");
 
 app.use(express.json({ limit: "5mb" }))
 app.use(express.urlencoded({ extended: false }));
 
-
-
-app.get("/", validateUser, (req, res) => {
-    res.status(200);
+//logger
+app.use(morgan("dev"))
+//3de59118-852b-47a6-af6e-d1553a5c4aae
+app.post("/auth/register", validateUserPayload, authController.register)
+app.post("/auth/login", authController.login)
+app.get("/api/users/:id", isAuth, userController.getUser)
+app.get("/api/organisations", isAuth, organisationController.getAllOrganisations)
+app.post("/api/organisations", isAuth, organisationController.createOrganisation)
+app.get("/api/organisations/:orgId", isAuth, organisationController.getOrganisation)
+app.post("/api/organisations/:orgId/users", isAuth, organisationController.addUserToOrganisation)
+app.use((req, res) => {
+    res.status(404).json({
+        status: "page not found",
+        message: "not_found",
+        statusCode: 404
+    })
 })
-
-app.get("/error", (req, res) => {
-    throw new Error(`testing error package.`)
-})
-app.use(errorHandler)
+app.use(errorHandler);
 
 app.listen(PORT, async () => {
     const client = await getClient();
@@ -38,8 +51,8 @@ app.listen(PORT, async () => {
         name VARCHAR(50) NOT NULL, 
         description TEXT,
         members VARCHAR(40) [],
-        user_id VARCHAR(40),
-        FOREIGN KEY (user_id) REFERENCES users (user_id)
+        user_id VARCHAR(40) UNIQUE NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
          );`
 
     await client.query(createUser);
