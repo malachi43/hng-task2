@@ -62,3 +62,5 @@ app.listen(PORT, async () => {
     console.log(`CONNECTED TO DATABASE SUCCESSFULLY.`)
     console.log(`Server is listening on port: ${PORT}.Press Ctrl+C to terminate.`)
 })
+
+module.exports = app;
