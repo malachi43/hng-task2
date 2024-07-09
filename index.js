@@ -37,7 +37,7 @@ app.use(errorHandler);
 app.listen(PORT, async () => {
     const client = await getClient();
     console.log(`CONNECTED TO DATABASE SUCCESSFULLY.`)
-    
+
     const createUser = `CREATE TABLE IF NOT EXISTS users (
         user_id VARCHAR(40) UNIQUE NOT NULL, 
         first_name VARCHAR(50) NOT NULL, 
@@ -55,6 +55,7 @@ app.listen(PORT, async () => {
             user_id VARCHAR(40) UNIQUE NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
              );`
+
 
     await client.query(createUser);
     await client.query(createOrganization);
