@@ -1,8 +1,6 @@
 const { ValidationError } = require("joi");
 
 const errorHandler = (err, req, res, next) => {
-    console.log(err.stack)
-    //err.details[0]?.path
     let fieldName = err.details
     if (fieldName) {
         fieldName = fieldName[0]?.path;

@@ -11,6 +11,7 @@ const authController = require("./controllers/auth.controller")
 const organisationController = require("./controllers/organization.controller")
 const isAuth = require("./middlewares/isAuthenticated")
 const morgan = require("morgan");
+const { Pool } = require("pg")
 
 app.use(express.json({ limit: "5mb" }))
 app.use(express.urlencoded({ extended: false }));
@@ -35,8 +36,10 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 app.listen(PORT, async () => {
-    const client = await getClient();
-    console.log(`CONNECTED TO DATABASE SUCCESSFULLY.`)
+    const pool = new Pool({
+        connectionString: process.env.PG_CONN_STRING,
+        ssl: true
+    })
 
     const createUser = `CREATE TABLE IF NOT EXISTS users (
         user_id VARCHAR(40) UNIQUE NOT NULL, 
@@ -56,8 +59,10 @@ app.listen(PORT, async () => {
             FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
              );`
 
+    await pool.query(createUser);
+    await pool.query(createOrganization);
 
-    await client.query(createUser);
-    await client.query(createOrganization);
+    console.log(`CONNECTED TO DATABASE SUCCESSFULLY.`)
+
     console.log(`Server is listening on port: ${PORT}.Press Ctrl+C to terminate.`)
 })

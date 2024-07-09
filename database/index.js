@@ -1,7 +1,7 @@
-const { Client } = require("pg")
+const { Client, Pool } = require("pg")
 
 
-const client = new Client({
+const pool = new Pool({
     connectionString: process.env.PG_CONN_STRING,
     ssl: true
 })
@@ -11,18 +11,11 @@ const client = new Client({
 async function connectToDatabase() {
     try {
         console.log(`CONNECTING TO DATABASE...`)
-
-        await client.connect();
-
-        client.on("error", err => {
-            if (err) process.exit(-1);
-        })
-
-        return client;
-
+        await pool.connect();
+        return pool;
     } catch (error) {
         console.error(error.message)
     }
 }
 
-module.exports = connectToDatabase;
+module.exports = connectToDatabase
