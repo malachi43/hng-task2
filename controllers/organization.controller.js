@@ -18,15 +18,14 @@ class Organisation {
 
         //check if users exists.
         if (userData.length <= 0) throw new BadRequestError(`user does not exist.`)
-        const OrgValues = [userId, userId]
+        const OrgValues = [userId]
 
-        let getUserOrganisation = `SELECT org_id, name, description FROM organisations WHERE $1 IN (SELECT user_id FROM organisations WHERE user_id = $2)`
+        let getUserOrganisation = `SELECT org_id, name, description FROM organisations WHERE user_id = $1`
 
         orgQuery.text = getUserOrganisation;
         orgQuery.values = OrgValues;
 
         const { rows } = await client.query(orgQuery);
-        console.log(`userOrganisations: `, rows)
 
         const dataObj = {
             status: "success",
