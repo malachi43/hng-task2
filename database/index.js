@@ -1,21 +1,17 @@
-const { Client, Pool } = require("pg")
+const { Client } = require("pg")
 
-
-const pool = new Pool({
-    connectionString: process.env.PG_CONN_STRING,
-    ssl: true
-})
-
-
-
-async function connectToDatabase() {
+async function getClient() {
     try {
-        console.log(`CONNECTING TO DATABASE...`)
-        await pool.connect();
-        return pool;
+        const client = new Client({
+            connectionString: process.env.PG_CONN_STRING,
+            ssl: true
+        })
+        await client.connect();
+        console.log(`client created!`)
+        return client;
     } catch (error) {
         console.error(error.message)
     }
 }
 
-module.exports = connectToDatabase
+module.exports = getClient;

@@ -17,15 +17,16 @@ class Organisation {
         const { rows: userData } = await client.query(userQuery);
 
         //check if users exists.
-        if (userData.length <= 0) throw new BadRequestError(`no user with id: ${userId}`)
+        if (userData.length <= 0) throw new BadRequestError(`user does not exist.`)
         const { first_name } = userData[0];
-        const OrgValues = [userId, userId]
+        const OrgValues = [userId,userId]
         const getUserOrganisation = `SELECT org_id,name,description FROM organisations INNER JOIN users ON $1=$2 `;
 
         orgQuery.text = getUserOrganisation;
         orgQuery.values = OrgValues;
 
         const { rows } = await client.query(orgQuery);
+        console.log(`userOrganisations: `,rows)
 
         const dataObj = {
             status: "success",
@@ -34,7 +35,7 @@ class Organisation {
                 "organisations": rows
             }
         }
-
+        await client.end()
         res.status(200).json(dataObj);
 
     }
@@ -56,6 +57,7 @@ class Organisation {
             data: rows[0]
         }
 
+        await client.end()
         res.status(200).json(dataObj);
     }
 
@@ -95,13 +97,14 @@ class Organisation {
             dataObj.data.description = orgDescription
         }
 
+        await client.end()
         res.status(200).json(dataObj)
     }
 
     async addUserToOrganisation(req, res) {
         const { orgId } = req.params;
         const { userId } = req.user;
-        if (!orgId) throw new BadRequestError(`provide valid orgId.`)
+        if (!orgId) throw new BadRequestError(`provide valid orgId parameter.`)
         const client = await getClient();
         const userQuery = {}
         const getUser = `SELECT * FROM users WHERE user_id = $1`;
@@ -139,6 +142,7 @@ class Organisation {
             message: "User added to organisation successfully",
         }
 
+        await client.end()
         res.status(200).json(dataObj);
     }
 }

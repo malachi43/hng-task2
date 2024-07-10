@@ -21,7 +21,7 @@ class Auth {
         userQuery.text = findUser;
         userQuery.values = userValues;
         const { rows } = await client.query(userQuery)
-        if (rows.length <= 0) throw new UnauthenticatedError(`Authentication failed`);
+        if (rows.length <= 0) throw new UnauthenticatedError(`incorrect email or password.`);
         const { password: hashedPassword, user_id, first_name, last_name, email: userEmail, phone } = rows[0]
         const isPasswordValid = await compare(password, hashedPassword)
         if (!isPasswordValid) throw new UnauthenticatedError(`Authentication failed`);
@@ -42,79 +42,79 @@ class Auth {
         if (phone) {
             dataObj.data.user.phone = phone
         }
+        await client.end()
         res.status(200).json(dataObj)
     }
     async register(req, res) {
-        try {
-            const client = await getClient();
-            const { firstName, lastName, email, password, phone } = req.body
 
-            const userQuery = {}
-            const orgQuery = {}
+        const client = await getClient();
+        const { firstName, lastName, email, password, phone } = req.body
 
-            const salt = 12;
-            const passwordHash = await hash(password, salt)
+        const userExists = await client.query(`SELECT * FROM users WHERE email = $1;`, [email])
+        if (userExists.rows.length > 0) throw new BadRequestError(`already existing user.`);
 
-            let createUser = ''
-            const userValues = [uuidv4(), firstName, lastName, email, passwordHash]
-            const createOrganisation = `INSERT INTO organisations(org_id, name, user_id,members) VALUES ($1,$2,$3,$4);`
+        const userQuery = {}
+        const orgQuery = {}
 
-            const orgValues = [uuidv4(), `${firstName}'s Organisation`]
+        const salt = 12;
+        const passwordHash = await hash(password, salt)
 
-            //check if client added their phone_number
-            if (phone) {
-                createUser = `INSERT INTO users (user_id,first_name,last_name,email,password,phone) VALUES ($1,$2,$3,$4,$5,$6);`
-                userValues.push(phone)
-            } else {
-                createUser = `INSERT INTO users (user_id,first_name,last_name,email,password) VALUES ($1,$2,$3,$4,$5);`
-            }
+        let createUser = ''
+        const userValues = [uuidv4(), firstName, lastName, email, passwordHash]
+        const createOrganisation = `INSERT INTO organisations(org_id, name,user_id,members) VALUES ($1,$2,$3,$4);`
 
+        const orgValues = [uuidv4(), `${firstName}'s Organisation`]
 
-            userQuery.text = createUser;
-            userQuery.values = userValues;
-
-            await client.query(userQuery);
-
-            const { rows } = await client.query(`SELECT * FROM users;`)
-
-            const { user_id, first_name, last_name, email: userEmail, phone: userContact } = rows[0]
-
-            //array to hold users in an organisation
-            orgValues.push(user_id);
-            let members = []
-            members.push(user_id)
-            //convert array items to string.
-            members = members.join(",")
-            orgValues.push(`{${members}}`)
-
-            orgQuery.values = orgValues;
-            orgQuery.text = createOrganisation;
-
-            await client.query(orgQuery);
-
-            const accessToken = await createToken({ payload: { userId: user_id } });
-
-            const dataObj = {
-                "status": "success",
-                "message": "Registration successful",
-                "data": {
-                    accessToken,
-                    "user": {
-                        "userId": user_id,
-                        "firstName": first_name,
-                        "lastName": last_name,
-                        "email": userEmail,
-                    }
-                }
-            }
-            if (userContact) {
-                dataObj.data.user.phone = userContact
-            }
-            res.status(201).json(dataObj);
-        } catch (error) {
-            throw new BadRequestError(`Registration unsuccessful`)
+        //check if client added their phone_number
+        if (phone) {
+            createUser = `INSERT INTO users (user_id,first_name,last_name,email,password,phone) VALUES ($1,$2,$3,$4,$5,$6);`
+            userValues.push(phone)
+        } else {
+            createUser = `INSERT INTO users (user_id,first_name,last_name,email,password) VALUES ($1,$2,$3,$4,$5);`
         }
 
+
+        userQuery.text = createUser;
+        userQuery.values = userValues;
+
+        await client.query(userQuery);
+
+        const { rows } = await client.query(`SELECT * FROM users WHERE email = $1`, [email])
+        const { user_id, first_name, last_name, email: userEmail, phone: userContact } = rows[0]
+
+        //array to hold users in an organisation
+        orgValues.push(user_id);
+        let members = []
+        members.push(user_id)
+        //convert array items to string.
+        members = members.join(",")
+        orgValues.push(`{${members}}`)
+
+        orgQuery.values = orgValues;
+        orgQuery.text = createOrganisation;
+
+        await client.query(orgQuery);
+
+        const accessToken = await createToken({ payload: { userId: user_id } });
+
+        const dataObj = {
+            "status": "success",
+            "message": "Registration successful",
+            "data": {
+                accessToken,
+                "user": {
+                    "userId": user_id,
+                    "firstName": first_name,
+                    "lastName": last_name,
+                    "email": userEmail,
+                }
+            }
+        }
+        if (userContact) {
+            dataObj.data.user.phone = userContact
+        }
+        await client.end()
+        res.status(201).json(dataObj);
     }
 }
 
