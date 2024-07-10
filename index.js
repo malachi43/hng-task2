@@ -1,7 +1,6 @@
 require("dotenv").config();
 require("express-async-errors");
 const express = require("express");
-require("./errsoleLogs")()
 const app = express();
 const PORT = process.env.PORT || 3000;
 const errorHandler = require('./middlewares/errorHandler.middleware')
@@ -13,9 +12,11 @@ const isAuth = require("./middlewares/isAuthenticated")
 const morgan = require("morgan");
 const testDBconnection = require("./connect");
 const createTable = require("./createTable");
+
 //parse requests
 app.use(express.json({ limit: "5mb" }))
 app.use(express.urlencoded({ extended: false }));
+
 //logger
 app.use(morgan("dev"))
 
