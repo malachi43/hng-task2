@@ -3,7 +3,7 @@ const { ValidationError } = require("joi");
 const errorHandler = (err, req, res, next) => {
     let fieldName = err.details
     if (fieldName) {
-        fieldName = fieldName[0]?.path;
+        fieldName = fieldName[0]?.path[0];
     }
     const validationObjRes = {
         error: [
