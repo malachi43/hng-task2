@@ -15,7 +15,6 @@ class Auth {
             throw new UnauthenticatedError(`Authentication failed`)
         }
         const client = await getClient();
-        console.log(client)
         const userQuery = {}
         const findUser = `SELECT * FROM users WHERE email = $1;`;
         const userValues = [email]
