@@ -17,7 +17,7 @@ const createTable = async () => {
         last_name VARCHAR(50) NOT NULL, 
         email VARCHAR(255) NOT NULL UNIQUE, 
         password TEXT NOT NULL, 
-        phone VARCHAR(13)
+        phone VARCHAR(20)
         );`
 
     const createOrganization = `CREATE TABLE IF NOT EXISTS organisations (
