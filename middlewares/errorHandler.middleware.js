@@ -1,16 +1,16 @@
 const { ValidationError } = require("joi");
 
 const errorHandler = (err, req, res, next) => {
-
     const errorDetails = err.details?.map(err => ({
         field: err.context.key,
         message: err.message
     }));
 
+
     const validationObjRes = {
         error: [
             {
-                field: errorDetails.length > 0 ? errorDetails : err.message,
+                field: errorDetails ? errorDetails : err.message,
                 message: err.name
             }
         ],
